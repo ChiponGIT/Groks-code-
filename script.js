@@ -1,209 +1,219 @@
-// script.js
-document.addEventListener('DOMContentLoaded', () => {
-    const tabs = document.querySelectorAll('.tab-link');
-    const contents = document.querySelectorAll('.tab-content');
-    const adminBtn = document.getElementById('admin-btn');
-    const adminPanel = document.getElementById('admin-panel');
-    const closeAdmin = document.getElementById('close-admin');
-    const statForm = document.getElementById('stat-form');
-    const inputMessage = document.getElementById('input-message');
-    const statsList = document.getElementById('stats-list');
-    const totalEntries = document.getElementById('total-entries');
-    const averageValue = document.getElementById('average-value');
-    const statsChart = document.getElementById('stats-chart');
-    const settingsForm = document.getElementById('settings-form');
-    const adminMessage = document.getElementById('admin-message');
-    const resetSettings = document.getElementById('reset-settings');
-    const clearStats = document.getElementById('clear-stats');
-    const exportStats = document.getElementById('export-stats');
+const $ = (q, el=document) => el.querySelector(q);
+const $$ = (q, el=document) => Array.from(el.querySelectorAll(q));
 
-    let stats = JSON.parse(localStorage.getItem('stats')) || [];
-    let settings = JSON.parse(localStorage.getItem('settings')) || {
-        bgColor: '#000000',
-        textColor: '#00ff00',
-        accentColor: '#ffffff',
-        fontSize: '16px',
-        fontFamily: 'monospace',
-        animationSpeed: '300ms',
-        terminalBorder: 'solid',
-        maxStats: 100,
-        autoSave: 60,
-        themeMode: 'dark'
-    };
+const tabs = $$(".tab[data-panel]");
+const panelsWrap = $("#panels");
+const panels = $$(".panel", panelsWrap);
+const panelTitle = $("#panelTitle");
+const typed = $("#typed");
+const pingEl = $("#ping");
+const year = $("#year");
+const logEl = $("#log");
+const statusEl = $("#status");
+const activityHint = $("#activityHint");
+const toasts = $("#toasts");
 
-    applySettings();
+year.textContent = new Date().getFullYear();
 
-    // Tab switching
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            const target = tab.getAttribute('href').substring(1);
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            contents.forEach(c => {
-                if (c.id === target) {
-                    c.classList.add('active');
-                } else {
-                    c.classList.remove('active');
-                }
-            });
-            if (target === 'view') loadStats();
-            if (target === 'reports') generateReports();
-        });
-    });
+const state = {
+  active: "home",
+  theme: localStorage.getItem("theme") || "green"
+};
 
-    // Admin access
-    adminBtn.addEventListener('click', () => {
-        const password = prompt('Enter admin password:');
-        if (password === 'admin') { // Simple password, change in production
-            adminPanel.classList.remove('hidden');
-            loadSettingsForm();
-        } else {
-            alert('Incorrect password');
-        }
-    });
+function nowStamp(){
+  const d = new Date();
+  return d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+}
 
-    closeAdmin.addEventListener('click', () => {
-        adminPanel.classList.add('hidden');
-    });
+function addLog(msg){
+  const li = document.createElement("li");
+  li.innerHTML = `<span class="ts">${nowStamp()}</span><span class="msg">${escapeHtml(msg)}</span>`;
+  logEl.prepend(li);
+  if (logEl.children.length > 6) logEl.lastElementChild.remove();
+}
 
-    // Input stats
-    statForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const date = document.getElementById('date').value;
-        const metric = document.getElementById('metric').value;
-        const value = parseInt(document.getElementById('value').value);
-        stats.push({ date, metric, value });
-        if (stats.length > settings.maxStats) stats.shift();
-        saveStats();
-        inputMessage.textContent = 'Stat added successfully!';
-        statForm.reset();
-    });
+function toast(title, body){
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = `
+    <div class="toastHead">
+      <div class="toastTitle">${escapeHtml(title)}</div>
+      <button class="toastClose" aria-label="Close">x</button>
+    </div>
+    <div class="toastBody">${escapeHtml(body)}</div>
+  `;
+  const close = $(".toastClose", el);
+  close.addEventListener("click", () => el.remove());
+  toasts.appendChild(el);
+  setTimeout(() => { if (el.isConnected) el.remove(); }, 4200);
+}
 
-    // Settings form
-    settingsForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        settings.bgColor = document.getElementById('bg-color').value;
-        settings.textColor = document.getElementById('text-color').value;
-        settings.accentColor = document.getElementById('accent-color').value;
-        settings.fontSize = document.getElementById('font-size').value + 'px';
-        settings.fontFamily = document.getElementById('font-family').value;
-        settings.animationSpeed = document.getElementById('animation-speed').value + 'ms';
-        settings.terminalBorder = document.getElementById('terminal-border').value;
-        settings.maxStats = parseInt(document.getElementById('max-stats').value);
-        settings.autoSave = parseInt(document.getElementById('auto-save').value);
-        settings.themeMode = document.getElementById('theme-mode').value;
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
 
-        if (settings.themeMode === 'light') {
-            settings.bgColor = '#ffffff';
-            settings.textColor = '#000000';
-            settings.accentColor = '#0000ff';
-        }
+function setTheme(t){
+  state.theme = t;
+  document.documentElement.dataset.theme = (t === "blue") ? "blue" : "green";
+  localStorage.setItem("theme", state.theme);
+  addLog(`theme set → ${t}`);
+}
 
-        saveSettings();
-        applySettings();
-        adminMessage.textContent = 'Settings applied!';
-    });
+setTheme(state.theme);
 
-    resetSettings.addEventListener('click', () => {
-        settings = {
-            bgColor: '#000000',
-            textColor: '#00ff00',
-            accentColor: '#ffffff',
-            fontSize: '16px',
-            fontFamily: 'monospace',
-            animationSpeed: '300ms',
-            terminalBorder: 'solid',
-            maxStats: 100,
-            autoSave: 60,
-            themeMode: 'dark'
-        };
-        saveSettings();
-        applySettings();
-        loadSettingsForm();
-        adminMessage.textContent = 'Settings reset to default!';
-    });
+function setActive(panel){
+  if (panel === state.active) return;
 
-    clearStats.addEventListener('click', () => {
-        if (confirm('Are you sure you want to clear all stats?')) {
-            stats = [];
-            saveStats();
-            adminMessage.textContent = 'All stats cleared!';
-        }
-    });
+  const prev = state.active;
+  state.active = panel;
 
-    exportStats.addEventListener('click', () => {
-        const data = JSON.stringify(stats);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'stats.json';
-        a.click();
-        URL.revokeObjectURL(url);
-    });
+  // tabs
+  tabs.forEach(b => b.classList.toggle("isActive", b.dataset.panel === panel));
 
-    function loadStats() {
-        statsList.innerHTML = '';
-        stats.forEach(stat => {
-            const li = document.createElement('li');
-            li.textContent = `${stat.date} - ${stat.metric}: ${stat.value}`;
-            statsList.appendChild(li);
-        });
-    }
+  // panels (slide)
+  panels.forEach(p => p.classList.toggle("isActive", p.dataset.panel === panel));
 
-    function generateReports() {
-        totalEntries.textContent = stats.length;
-        const sum = stats.reduce((acc, stat) => acc + stat.value, 0);
-        averageValue.textContent = stats.length ? (sum / stats.length).toFixed(2) : 0;
+  panelTitle.textContent = titleCase(panel);
 
-        // Simple line chart using Canvas
-        const ctx = statsChart.getContext('2d');
-        ctx.clearRect(0, 0, statsChart.width, statsChart.height);
-        ctx.strokeStyle = var('--text-color');
-        ctx.beginPath();
-        const maxValue = Math.max(...stats.map(s => s.value), 1);
-        stats.forEach((stat, i) => {
-            const x = (i / (stats.length - 1)) * statsChart.width;
-            const y = statsChart.height - (stat.value / maxValue) * statsChart.height;
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        });
-        ctx.stroke();
-    }
+  // typing header changes per panel
+  runTypingFor(panel);
 
-    function applySettings() {
-        document.documentElement.style.setProperty('--bg-color', settings.bgColor);
-        document.documentElement.style.setProperty('--text-color', settings.textColor);
-        document.documentElement.style.setProperty('--accent-color', settings.accentColor);
-        document.documentElement.style.setProperty('--font-size', settings.fontSize);
-        document.documentElement.style.setProperty('--font-family', settings.fontFamily);
-        document.documentElement.style.setProperty('--animation-speed', settings.animationSpeed);
-        document.documentElement.style.setProperty('--terminal-border', settings.terminalBorder);
-    }
+  addLog(`switched: ${prev} → ${panel}`);
+}
 
-    function loadSettingsForm() {
-        document.getElementById('bg-color').value = settings.bgColor;
-        document.getElementById('text-color').value = settings.textColor;
-        document.getElementById('accent-color').value = settings.accentColor;
-        document.getElementById('font-size').value = parseInt(settings.fontSize);
-        document.getElementById('font-family').value = settings.fontFamily;
-        document.getElementById('animation-speed').value = parseInt(settings.animationSpeed);
-        document.getElementById('terminal-border').value = settings.terminalBorder;
-        document.getElementById('max-stats').value = settings.maxStats;
-        document.getElementById('auto-save').value = settings.autoSave;
-        document.getElementById('theme-mode').value = settings.themeMode;
-    }
+function titleCase(s){
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
-    function saveStats() {
-        localStorage.setItem('stats', JSON.stringify(stats));
-    }
-
-    function saveSettings() {
-        localStorage.setItem('settings', JSON.stringify(settings));
-    }
-
-    // Auto-save interval (not real auto-save, but demo)
-    setInterval(saveStats, settings.autoSave * 1000);
+// click handlers
+tabs.forEach(btn => {
+  btn.addEventListener("click", () => setActive(btn.dataset.panel));
 });
 
+$("#themeBtn").addEventListener("click", () => {
+  setTheme(state.theme === "blue" ? "green" : "blue");
+  toast("Theme", `Switched to ${state.theme}`);
+});
+
+// keyboard shortcuts
+window.addEventListener("keydown", (e) => {
+  if (["INPUT","TEXTAREA"].includes(document.activeElement?.tagName)) return;
+
+  if (e.key === "1") setActive("home");
+  if (e.key === "2") setActive("projects");
+  if (e.key === "3") setActive("about");
+  if (e.key === "4") setActive("contact");
+  if (e.key.toLowerCase() === "t") {
+    setTheme(state.theme === "blue" ? "green" : "blue");
+    toast("Theme", `Switched to ${state.theme}`);
+  }
+});
+
+// fake ping
+function updatePing(){
+  const v = Math.floor(8 + Math.random()*52);
+  pingEl.textContent = `${v}ms`;
+}
+updatePing();
+setInterval(updatePing, 1800);
+
+// typing effect
+let typeTimer = null;
+let blinkTimer = null;
+
+const panelCmds = {
+  home: "echo 'welcome back' && ./run --status",
+  projects: "ls -la ./projects && ./deploy --preview",
+  about: "cat ./about.txt | less",
+  contact: "open mailto:you@example.com"
+};
+
+function runTypingFor(panel){
+  clearTimeout(typeTimer);
+  if (blinkTimer) clearInterval(blinkTimer);
+
+  const text = panelCmds[panel] || "echo 'hi'";
+  typed.textContent = "";
+
+  let i = 0;
+  const speed = 22 + Math.random()*18;
+
+  const tick = () => {
+    typed.textContent = text.slice(0, i);
+    i++;
+    if (i <= text.length) {
+      typeTimer = setTimeout(tick, speed);
+    }
+  };
+  tick();
+}
+runTypingFor(state.active);
+
+// buttons
+$("#checkBtn")?.addEventListener("click", async () => {
+  statusEl.textContent = "RUNNING…";
+  activityHint.textContent = "checking…";
+  addLog("run check initiated");
+  await sleep(650);
+  const ok = Math.random() > 0.15;
+  statusEl.textContent = ok ? "OK" : "WARN";
+  activityHint.textContent = ok ? "done ✅" : "needs attention ⚠️";
+  toast(ok ? "Check complete" : "Warning", ok ? "All systems look good." : "One module returned WARN.");
+  addLog(ok ? "check complete: OK" : "check complete: WARN");
+});
+
+$("#toastBtn")?.addEventListener("click", () => {
+  toast("Hey", "This is a clean toast notification 🙂");
+});
+
+$("#copyBtn")?.addEventListener("click", async () => {
+  const text = panelCmds[state.active] || "";
+  try{
+    await navigator.clipboard.writeText(text);
+    toast("Copied", "Command copied to clipboard.");
+    addLog("copied command to clipboard");
+  }catch{
+    toast("Copy failed", "Clipboard blocked by browser permissions.");
+    addLog("copy failed (permissions)");
+  }
+});
+
+$$("[data-open]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const url = btn.getAttribute("data-open");
+    window.open(url, "_blank", "noopener,noreferrer");
+  });
+});
+
+$("#fakeDeploy")?.addEventListener("click", async () => {
+  toast("Deploy", "Starting simulated deploy…");
+  addLog("deploy started");
+  await sleep(700);
+  toast("Deploy", "Build step…");
+  await sleep(650);
+  toast("Deploy", "Deploy complete ✅");
+  addLog("deploy complete");
+});
+
+$("#clearBtn")?.addEventListener("click", () => {
+  $("#name").value = "";
+  $("#msg").value = "";
+  toast("Cleared", "Form cleared.");
+});
+
+$("#contactForm")?.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("#name").value.trim();
+  const msg = $("#msg").value.trim();
+  toast("Sent", `Thanks ${name || "!"} — message queued (demo).`);
+  addLog(`contact form submitted (${(name||"anon")})`);
+  $("#msg").value = "";
+});
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+// first boot log
+addLog("boot: terminal UI ready");
+addLog("hint: press 1-4 to navigate");
