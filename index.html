@@ -1,0 +1,118 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats Tracker Terminal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="terminal">
+        <header>
+            <nav>
+                <ul class="tabs">
+                    <li><a href="#home" class="tab-link active">Home</a></li>
+                    <li><a href="#input" class="tab-link">Input Stats</a></li>
+                    <li><a href="#view" class="tab-link">View Stats</a></li>
+                    <li><a href="#reports" class="tab-link">Reports</a></li>
+                    <li><a href="#about" class="tab-link">About</a></li>
+                </ul>
+                <button id="admin-btn">Admin Panel</button>
+            </nav>
+        </header>
+        <main>
+            <section id="home" class="tab-content active">
+                <h1>Welcome to Stats Tracker Terminal</h1>
+                <p>This is a terminal-style interface for tracking your personal stats, such as daily tasks completed, hours worked, or custom metrics.</p>
+                <p>Use the tabs to navigate. Stats are stored locally in your browser.</p>
+            </section>
+            <section id="input" class="tab-content">
+                <h1>Input Stats</h1>
+                <form id="stat-form">
+                    <label for="date">Date (YYYY-MM-DD):</label>
+                    <input type="date" id="date" required>
+                    <label for="metric">Metric (e.g., Tasks Completed):</label>
+                    <input type="text" id="metric" required>
+                    <label for="value">Value:</label>
+                    <input type="number" id="value" required>
+                    <button type="submit">Add Stat</button>
+                </form>
+                <p id="input-message"></p>
+            </section>
+            <section id="view" class="tab-content">
+                <h1>View Stats</h1>
+                <ul id="stats-list"></ul>
+            </section>
+            <section id="reports" class="tab-content">
+                <h1>Reports</h1>
+                <p>Total Stats Entries: <span id="total-entries">0</span></p>
+                <p>Average Value: <span id="average-value">0</span></p>
+                <canvas id="stats-chart" width="400" height="200"></canvas>
+            </section>
+            <section id="about" class="tab-content">
+                <h1>About</h1>
+                <p>This site is a simple client-side stats tracker with a terminal aesthetic.</p>
+                <p>Built with HTML, CSS, and JS. Stats persist via localStorage.</p>
+            </section>
+        </main>
+        <div id="admin-panel" class="hidden">
+            <h1>Admin Panel</h1>
+            <p>Customize the site settings below.</p>
+            <form id="settings-form">
+                <label for="bg-color">Background Color:</label>
+                <input type="color" id="bg-color" value="#000000">
+                
+                <label for="text-color">Text Color:</label>
+                <input type="color" id="text-color" value="#00ff00">
+                
+                <label for="accent-color">Accent Color (e.g., buttons, links):</label>
+                <input type="color" id="accent-color" value="#ffffff">
+                
+                <label for="font-size">Font Size (px):</label>
+                <input type="number" id="font-size" value="16" min="10" max="24">
+                
+                <label for="font-family">Font Family:</label>
+                <select id="font-family">
+                    <option value="monospace">Monospace (Default)</option>
+                    <option value="Courier New, monospace">Courier New</option>
+                    <option value="Consolas, monospace">Consolas</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                </select>
+                
+                <label for="animation-speed">Animation Speed (ms):</label>
+                <input type="number" id="animation-speed" value="300" min="0" max="1000" step="100">
+                
+                <label for="terminal-border">Terminal Border Style:</label>
+                <select id="terminal-border">
+                    <option value="solid">Solid</option>
+                    <option value="dotted">Dotted</option>
+                    <option value="dashed">Dashed</option>
+                    <option value="none">None</option>
+                </select>
+                
+                <label for="max-stats">Max Stats to Keep:</label>
+                <input type="number" id="max-stats" value="100" min="10" max="1000">
+                
+                <label for="auto-save">Auto-Save Interval (seconds):</label>
+                <input type="number" id="auto-save" value="60" min="10" max="300">
+                
+                <label for="theme-mode">Theme Mode:</label>
+                <select id="theme-mode">
+                    <option value="dark">Dark (Default)</option>
+                    <option value="light">Light</option>
+                    <option value="custom">Custom</option>
+                </select>
+                
+                <button type="submit">Apply Settings</button>
+                <button type="button" id="reset-settings">Reset to Default</button>
+                <button type="button" id="clear-stats">Clear All Stats</button>
+                <button type="button" id="export-stats">Export Stats (JSON)</button>
+            </form>
+            <p id="admin-message"></p>
+            <button id="close-admin">Close Panel</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
