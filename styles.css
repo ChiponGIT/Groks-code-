@@ -452,4 +452,185 @@ body{
   padding: 2px 8px;
   font-family: var(--mono);
 }
-.toastBody{ color: var(--muted); font-size: 12px; line-height:1.4; }
+.toastBody{ color: var(--muted); font-size: 12px; line-height:1.4; }/* ====== Transitions control via data attrs ====== */
+:root{
+  --tspeed: 0.35s;
+}
+html[data-transitions="off"] .panel{
+  transition: none !important;
+}
+html[data-fx="off"] .scanline,
+html[data-fx="off"] .bgGlow{
+  display:none !important;
+}
+html[data-focus="on"] .topbar{
+  display:none;
+}
+html[data-perf="fast"] .bgGlow{ opacity:.55; filter: blur(18px); }
+html[data-perf="ultra"] .bgGlow{ display:none; }
+html[data-perf="ultra"] .scanline{ display:none; }
+html[data-perf="ultra"] .card{ box-shadow:none; }
+
+.panel{
+  transition: transform var(--tspeed) ease, opacity calc(var(--tspeed) * 0.75) ease;
+}
+
+/* Transition styles */
+html[data-tstyle="fade"] .panel{ transform: translateX(0) scale(1); opacity:0; }
+html[data-tstyle="fade"] .panel.isActive{ opacity:1; }
+
+html[data-tstyle="zoom"] .panel{ transform: translateX(0) scale(0.98); opacity:0; }
+html[data-tstyle="zoom"] .panel.isActive{ transform: translateX(0) scale(1); opacity:1; }
+
+html[data-tstyle="glitch"] .panel{ transform: translateX(0); opacity:0; filter: blur(1px); }
+html[data-tstyle="glitch"] .panel.isActive{ opacity:1; filter:none; }
+html[data-tstyle="glitch"] .panel.isActive::before{
+  content:"";
+  position:absolute; inset:-6px;
+  background: linear-gradient(90deg, rgba(88,255,170,.15), rgba(89,167,255,.12));
+  opacity:.16;
+  pointer-events:none;
+  animation: glitchSweep .38s ease both;
+  border-radius: 18px;
+}
+@keyframes glitchSweep{
+  from{ transform: translateX(-10px); opacity:.05; }
+  to{ transform: translateX(0); opacity:.16; }
+}
+
+/* Links list */
+.linksList{
+  display:grid;
+  gap:10px;
+}
+.linkItem{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.02);
+  border-radius: 16px;
+  padding: 10px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.linkLeft{
+  display:grid;
+  gap:3px;
+}
+.linkName{ font-weight:800; }
+.linkUrl{ color: var(--muted); font-size:12px; }
+.linkBtns{ display:flex; gap:8px; flex-wrap:wrap; }
+
+.smBtn{
+  cursor:pointer;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.smBtn:hover{
+  transform: translateY(-1px);
+  border-color: rgba(88,255,170,.35);
+  box-shadow: 0 0 0 4px rgba(88,255,170,.08);
+}
+
+/* Tools toggles */
+.tools{ display:grid; gap:10px; }
+.toggle{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border:1px solid var(--line);
+  background: rgba(0,0,0,.14);
+}
+.toggle input{ accent-color: var(--accent); }
+
+/* Portal transition overlay for opening links */
+.portal{
+  position: fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+  z-index: 100;
+  background:
+    radial-gradient(closest-side at 50% 50%, rgba(255,255,255,.10), transparent 60%),
+    radial-gradient(closest-side at 50% 50%, rgba(88,255,170,.20), transparent 70%),
+    linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.65));
+  backdrop-filter: blur(6px);
+  transform: scale(1.02);
+}
+.portal.on{
+  animation: portalIn .38s ease both;
+}
+@keyframes portalIn{
+  from{ opacity:0; transform: scale(1.03); }
+  to{ opacity:1; transform: scale(1.0); }
+}
+
+/* Command palette */
+.cmdk{
+  position: fixed;
+  inset:0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(10px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding: 16px;
+  z-index: 120;
+}
+.cmdk.on{ display:flex; }
+.cmdkBox{
+  width: min(620px, 100%);
+  border:1px solid var(--line);
+  background: rgba(10,12,18,.86);
+  border-radius: 20px;
+  box-shadow: 0 20px 80px rgba(0,0,0,.6);
+  overflow:hidden;
+}
+.cmdkHead{
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+#cmdkInput{
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: rgba(0,0,0,.18);
+}
+.cmdkHints{
+  padding: 12px 14px;
+  display:grid;
+  gap:8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Matrix overlay (lightweight) */
+.matrix{
+  position: fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.0;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(88,255,170,.10) 0px,
+    rgba(88,255,170,.10) 1px,
+    transparent 8px,
+    transparent 18px
+  );
+  mix-blend-mode: screen;
+  filter: blur(.2px);
+  transition: opacity .25s ease;
+}
+.matrix.on{ opacity:.12; }
