@@ -1,118 +1,227 @@
-<!-- index.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stats Tracker Terminal</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Terminal Site</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <div id="terminal">
-        <header>
-            <nav>
-                <ul class="tabs">
-                    <li><a href="#home" class="tab-link active">Home</a></li>
-                    <li><a href="#input" class="tab-link">Input Stats</a></li>
-                    <li><a href="#view" class="tab-link">View Stats</a></li>
-                    <li><a href="#reports" class="tab-link">Reports</a></li>
-                    <li><a href="#about" class="tab-link">About</a></li>
-                </ul>
-                <button id="admin-btn">Admin Panel</button>
-            </nav>
-        </header>
-        <main>
-            <section id="home" class="tab-content active">
-                <h1>Welcome to Stats Tracker Terminal</h1>
-                <p>This is a terminal-style interface for tracking your personal stats, such as daily tasks completed, hours worked, or custom metrics.</p>
-                <p>Use the tabs to navigate. Stats are stored locally in your browser.</p>
-            </section>
-            <section id="input" class="tab-content">
-                <h1>Input Stats</h1>
-                <form id="stat-form">
-                    <label for="date">Date (YYYY-MM-DD):</label>
-                    <input type="date" id="date" required>
-                    <label for="metric">Metric (e.g., Tasks Completed):</label>
-                    <input type="text" id="metric" required>
-                    <label for="value">Value:</label>
-                    <input type="number" id="value" required>
-                    <button type="submit">Add Stat</button>
-                </form>
-                <p id="input-message"></p>
-            </section>
-            <section id="view" class="tab-content">
-                <h1>View Stats</h1>
-                <ul id="stats-list"></ul>
-            </section>
-            <section id="reports" class="tab-content">
-                <h1>Reports</h1>
-                <p>Total Stats Entries: <span id="total-entries">0</span></p>
-                <p>Average Value: <span id="average-value">0</span></p>
-                <canvas id="stats-chart" width="400" height="200"></canvas>
-            </section>
-            <section id="about" class="tab-content">
-                <h1>About</h1>
-                <p>This site is a simple client-side stats tracker with a terminal aesthetic.</p>
-                <p>Built with HTML, CSS, and JS. Stats persist via localStorage.</p>
-            </section>
-        </main>
-        <div id="admin-panel" class="hidden">
-            <h1>Admin Panel</h1>
-            <p>Customize the site settings below.</p>
-            <form id="settings-form">
-                <label for="bg-color">Background Color:</label>
-                <input type="color" id="bg-color" value="#000000">
-                
-                <label for="text-color">Text Color:</label>
-                <input type="color" id="text-color" value="#00ff00">
-                
-                <label for="accent-color">Accent Color (e.g., buttons, links):</label>
-                <input type="color" id="accent-color" value="#ffffff">
-                
-                <label for="font-size">Font Size (px):</label>
-                <input type="number" id="font-size" value="16" min="10" max="24">
-                
-                <label for="font-family">Font Family:</label>
-                <select id="font-family">
-                    <option value="monospace">Monospace (Default)</option>
-                    <option value="Courier New, monospace">Courier New</option>
-                    <option value="Consolas, monospace">Consolas</option>
-                    <option value="Arial, sans-serif">Arial</option>
-                </select>
-                
-                <label for="animation-speed">Animation Speed (ms):</label>
-                <input type="number" id="animation-speed" value="300" min="0" max="1000" step="100">
-                
-                <label for="terminal-border">Terminal Border Style:</label>
-                <select id="terminal-border">
-                    <option value="solid">Solid</option>
-                    <option value="dotted">Dotted</option>
-                    <option value="dashed">Dashed</option>
-                    <option value="none">None</option>
-                </select>
-                
-                <label for="max-stats">Max Stats to Keep:</label>
-                <input type="number" id="max-stats" value="100" min="10" max="1000">
-                
-                <label for="auto-save">Auto-Save Interval (seconds):</label>
-                <input type="number" id="auto-save" value="60" min="10" max="300">
-                
-                <label for="theme-mode">Theme Mode:</label>
-                <select id="theme-mode">
-                    <option value="dark">Dark (Default)</option>
-                    <option value="light">Light</option>
-                    <option value="custom">Custom</option>
-                </select>
-                
-                <button type="submit">Apply Settings</button>
-                <button type="button" id="reset-settings">Reset to Default</button>
-                <button type="button" id="clear-stats">Clear All Stats</button>
-                <button type="button" id="export-stats">Export Stats (JSON)</button>
-            </form>
-            <p id="admin-message"></p>
-            <button id="close-admin">Close Panel</button>
-        </div>
+  <div class="bgGlow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span>
+      <span class="title">chip@site</span>
+      <span class="path">~/dashboard</span>
     </div>
-    <script src="script.js"></script>
+
+    <nav class="nav">
+      <button class="tab isActive" data-panel="home">
+        <span class="k">[1]</span> Home
+      </button>
+      <button class="tab" data-panel="projects">
+        <span class="k">[2]</span> Projects
+      </button>
+      <button class="tab" data-panel="about">
+        <span class="k">[3]</span> About
+      </button>
+      <button class="tab" data-panel="contact">
+        <span class="k">[4]</span> Contact
+      </button>
+      <button class="tab ghost" id="themeBtn" title="Toggle theme">
+        <span class="k">[T]</span> Theme
+      </button>
+    </nav>
+  </header>
+
+  <main class="shell">
+    <section class="window">
+      <div class="windowHead">
+        <div class="windowTitle">
+          <span class="badge">LIVE</span>
+          <span id="panelTitle">Home</span>
+        </div>
+
+        <div class="windowActions">
+          <span class="mini">Ping:</span>
+          <span class="pill" id="ping">—</span>
+          <span class="divider"></span>
+          <button class="miniBtn" id="copyBtn">Copy cmd</button>
+        </div>
+      </div>
+
+      <div class="terminal">
+        <div class="scanline" aria-hidden="true"></div>
+
+        <div class="promptRow">
+          <span class="prompt">chip@site</span>
+          <span class="sep">:</span>
+          <span class="dir">~/dashboard</span>
+          <span class="sep">$</span>
+          <span class="typed" id="typed"></span>
+          <span class="caret" aria-hidden="true"></span>
+        </div>
+
+        <div class="content">
+          <div class="panels" id="panels">
+
+            <!-- HOME -->
+            <article class="panel isActive" data-panel="home">
+              <h2 class="h">Welcome</h2>
+              <p class="p">
+                Smooth terminal UI with slide transitions, keyboard shortcuts, and a clean neon glow.
+              </p>
+
+              <div class="grid">
+                <div class="card">
+                  <div class="cardHead">
+                    <span class="label">Status</span>
+                    <span class="muted" id="status">OK</span>
+                  </div>
+                  <div class="cardBody">
+                    <p class="p small">
+                      Press <span class="key">1</span>-<span class="key">4</span> to switch panels.
+                      Press <span class="key">T</span> to toggle theme.
+                    </p>
+                    <div class="row">
+                      <button class="btn" id="checkBtn">Run check</button>
+                      <button class="btn alt" id="toastBtn">Show toast</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="cardHead">
+                    <span class="label">Quick cmds</span>
+                    <span class="muted">copy-ready</span>
+                  </div>
+                  <div class="cardBody">
+                    <div class="code">
+                      <div class="codeRow"><span class="cmt"># install</span></div>
+                      <div class="codeRow"><span class="cmd">npm</span> i</div>
+                      <div class="codeRow"><span class="cmt"># run</span></div>
+                      <div class="codeRow"><span class="cmd">npm</span> run dev</div>
+                    </div>
+                    <p class="p small muted">
+                      (This is just a style demo — replace with your real commands.)
+                    </p>
+                  </div>
+                </div>
+
+                <div class="card wide">
+                  <div class="cardHead">
+                    <span class="label">Activity</span>
+                    <span class="muted" id="activityHint">waiting…</span>
+                  </div>
+                  <div class="cardBody">
+                    <ul class="log" id="log"></ul>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- PROJECTS -->
+            <article class="panel" data-panel="projects">
+              <h2 class="h">Projects</h2>
+              <p class="p muted">Drop your stuff here. This layout already looks “pro” on Pages 🖤</p>
+
+              <div class="stack">
+                <div class="card">
+                  <div class="cardHead">
+                    <span class="label">Crossroad Auto Detail</span>
+                    <span class="pill">draft</span>
+                  </div>
+                  <div class="cardBody">
+                    <p class="p small">Terminal-themed landing with smooth sections and CTA buttons.</p>
+                    <div class="row">
+                      <button class="btn" data-open="https://github.com/">Open repo</button>
+                      <button class="btn alt" id="fakeDeploy">Simulate deploy</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="cardHead">
+                    <span class="label">Price Comparator</span>
+                    <span class="pill">idea</span>
+                  </div>
+                  <div class="cardBody">
+                    <p class="p small">Future module: search + compare + filters + nice UI.</p>
+                    <div class="hint">
+                      Tip: Keep your UI separate (this) and wire APIs later.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- ABOUT -->
+            <article class="panel" data-panel="about">
+              <h2 class="h">About</h2>
+              <p class="p">
+                This is a lightweight template: no frameworks, just clean HTML/CSS/JS.
+              </p>
+              <div class="card">
+                <div class="cardHead">
+                  <span class="label">Specs</span>
+                  <span class="muted">fast</span>
+                </div>
+                <div class="cardBody">
+                  <ul class="list">
+                    <li><span class="ok">✔</span> Slide transitions</li>
+                    <li><span class="ok">✔</span> Typing header</li>
+                    <li><span class="ok">✔</span> Toast system</li>
+                    <li><span class="ok">✔</span> Theme toggle</li>
+                    <li><span class="ok">✔</span> Mobile responsive</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+
+            <!-- CONTACT -->
+            <article class="panel" data-panel="contact">
+              <h2 class="h">Contact</h2>
+              <p class="p muted">This is front-end only. You can link socials or add a mailto.</p>
+
+              <div class="card">
+                <div class="cardHead">
+                  <span class="label">Send a message</span>
+                  <span class="muted">demo form</span>
+                </div>
+                <div class="cardBody">
+                  <form id="contactForm" class="form">
+                    <label class="field">
+                      <span class="fieldLabel">Name</span>
+                      <input class="input" id="name" placeholder="chip" required />
+                    </label>
+                    <label class="field">
+                      <span class="fieldLabel">Message</span>
+                      <textarea class="input textarea" id="msg" placeholder="type here…" required></textarea>
+                    </label>
+                    <div class="row">
+                      <button class="btn" type="submit">Send</button>
+                      <button class="btn alt" type="button" id="clearBtn">Clear</button>
+                    </div>
+                    <p class="p small muted">Submitting shows a toast (no backend).</p>
+                  </form>
+                </div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span class="muted">© <span id="year"></span> chip@site</span>
+      <span class="muted">keys: 1-4 / T</span>
+    </footer>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="script.js"></script>
 </body>
 </html>
